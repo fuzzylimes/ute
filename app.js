@@ -24,44 +24,35 @@ app.listen(config.port, (err) => {
 });
 
 // Traffic Generator
-function fire(payload) {
-    switch (payload.method.toLowerCase()) {
-        case 'get':
-            request.get({
-                url: payload.url
-            }, (error, response, body) => {
-                if (error){
-                    console.log(error);
-                } else {
-                    !results.hasOwnProperty(response.statusCode) ?
-                        results[response.statusCode] = 1 :
-                        ++results[response.statusCode];
-                    console.log(results);
-                    if (response.statusCode === payload.expected){
-                        console.log(response.body);
-                        console.log(response.request.uri.path);
-                    }
-                    console.log(response.statusCode);
-                }
-            });
-            break;
 
-        case 'post':
-            request.post({
+// Helper Functions
+function validation(response, body){
+    !results.hasOwnProperty(response.statusCode) ?
+        results[response.statusCode] = 1 :
+        ++results[response.statusCode];
+    console.log(results);
+    if (response.statusCode === payload.expected) {
+        console.log(response.body);
+        console.log(response.request.uri.path);
+    }
+    console.log(response.statusCode);
+}
+
+function fire(payload) {
+    let normalized = payload.method.toUpperCase();
+    switch (normalized) {
+        case 'GET':
+        case 'POST':
+        case 'PUT':
+        case 'DELETE':
+            request({
+                method: normalized,
                 url: payload.url
             }, (error, response, body) => {
                 if (error){
                     console.log(error);
                 } else {
-                    !results.hasOwnProperty(response.statusCode) ?
-                        results[response.statusCode] = 1 :
-                        ++results[response.statusCode];
-                    console.log(results);
-                    if (response.statusCode === payload.expected){
-                        console.log(response.body);
-                        console.log(response.request.uri.path);
-                    }
-                    console.log(response.statusCode);
+                    validation(response, body);
                 }
             });
             break;
