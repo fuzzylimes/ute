@@ -1,0 +1,12 @@
+[
+    {
+        "method": "get",
+        "url": "http://localhost:5000/dummy/server",
+        "expected": 200
+    },
+    {
+        "method": "post",
+        "url": "http://localhost:5000/dummy/server",
+        "expected": 201
+    }
+]
