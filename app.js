@@ -3,6 +3,7 @@ const request = require('request');
 const config = require('./src/config');
 const payload = require('./scenarios/dummy');
 var program = require('commander');
+const helper = require('./src/helper');
 const app = express();
 // Express Management Stuff...
 // Import Routes
@@ -22,13 +23,11 @@ if (!program.scenario || !program.rate){
     console.log("-s and -r are both required parameters. Please see -h for more information.")
     process.exit(1);
 }
-
-console.log(program);
-console.log(program.parallel);
-console.log(program.scenario);
-console.log(program.rate);
-console.log(program.period);
-console.log(program.port);
+// console.log(program.parallel);
+// console.log(program.scenario);
+// console.log(program.rate);
+// console.log(program.period);
+// console.log(program.port);
 const parallel = program.parallel;
 const scenario = require('./'+program.scenario);
 const rate = program.rate;
@@ -37,6 +36,15 @@ const port = program.port;
 const delay = program.delay;
 
 let results = {};
+scenario.forEach(element => {
+    if (!results.hasOwnProperty(element.url)) results[element.url] = {};
+    if (!results[element.url].hasOwnProperty(element.method)) results[element.url][element.method.toUpperCase()] = {
+        responses: {}, tx: 0, rx: 0, times: { min: 10000, max: 0, avg: 0 }, expected: 0
+    };
+});
+
+// console.log(helper.log(results));
+
 let success = 0;
 let failures = 0;
 let pointer = 0;
@@ -56,6 +64,7 @@ app.listen(port, (err) => {
 
 function fire(payload) {
     let normalized = payload.method.toUpperCase();
+    ++results[payload.url][normalized].tx;
     switch (normalized) {
         case 'GET':
         case 'POST':
@@ -64,21 +73,34 @@ function fire(payload) {
             request({
                 method: normalized,
                 url: payload.url,
-                body: payload.body
+                body: payload.body,
+                time: true
             }, (error, response, body) => {
                 if (error){
                     console.log(error);
                 } else {
-                    !results.hasOwnProperty(response.statusCode) ?
-                        results[response.statusCode] = 1 :
-                        ++results[response.statusCode];
-                    console.log(results);
-                    console.log(response.request.body);
+                    let path = response.request.uri.href;
+                    let method = response.request.method.toUpperCase();
+                    let time = response.timings.end;
+                    if (time > results[path][method].times.max) results[path][method].times.max = time;
+                    if (time < results[path][method].times.min) results[path][method].times.min = time;
+                    results[path][method].times.avg = results[path][method].tx
+                    ++results[path][method].rx;
+                    
+                    // let rec = results[path][method].responses;
+                    !results[path][method].responses.hasOwnProperty(response.statusCode) ?
+                        results[path][method].responses[response.statusCode] = 1 :
+                        ++results[path][method].responses[response.statusCode];
+
+                    // !results.hasOwnProperty(response.statusCode) ?
+                    //     results[response.statusCode] = 1 :
+                    //     ++results[response.statusCode];
+                    // console.log(results);
+                    // console.log(response.request.body);
                     if (response.statusCode === payload.expected) {
-                        console.log(body);
-                        console.log(response.request.uri.path);
+                        ++results[path][method].expected;
                     }
-                    console.log(response.statusCode);
+                    console.log(helper.log(results));
                 }
             });
             break;
