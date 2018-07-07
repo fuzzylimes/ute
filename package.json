@@ -9,6 +9,7 @@
   "author": "fuzzylimes",
   "license": "ISC",
   "dependencies": {
+    "commander": "^2.16.0",
     "express": "^4.16.3",
     "request": "^2.87.0"
   }

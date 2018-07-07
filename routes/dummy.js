@@ -35,7 +35,7 @@ router
             count,
             lastCount
         }
-        res.status(200);
+        res.status(201);
         res.set('Content-Type', 'application/json');
         res.send(JSON.stringify(body));
     })
