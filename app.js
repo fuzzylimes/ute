@@ -36,7 +36,7 @@ let runId;
 let pointer = 0;
 const port = program.port;
 const delay = program.delay;
-let results = {};
+let results = {state: false};
 
 
 // Build logging object
@@ -62,6 +62,7 @@ app.put('/controls/stop', (req, res) => {
         res.send('Cease fire!');
         console.log(`Ceasing fire!`);
         clearInterval(runId);
+        results.state = false;
     }
 });
 app.put('/controls/ute', (req, res) => {
@@ -131,6 +132,7 @@ function fire(payload) {
 }
 
 function ute() {
+    results.state = true;
     runId = setInterval(() => {
         let now = scenario[pointer];
         ++pointer < scenario.length ? pointer : pointer = 0;
