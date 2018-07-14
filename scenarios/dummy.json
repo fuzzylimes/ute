@@ -1,26 +1,26 @@
 [
     {
         "method": "get",
-        "url": "http://localhost:5000/dummy/server",
+        "url": "http://localhost:5000/dummy/server/get",
         "expected": 200,
         "body": null
     },
     {
         "method": "post",
-        "url": "http://localhost:5000/dummy/server",
+        "url": "http://localhost:5000/dummy/server/post",
         "expected": 201,
         "body": "{\"method\":\"post\"}"
     },
     {
         "method": "put",
-        "url": "http://localhost:5000/dummy/server",
-        "expected": 201,
+        "url": "http://localhost:5000/dummy/server/put",
+        "expected": 301,
         "body": "{\"method\":\"put\"}"
     },
     {
         "method": "delete",
-        "url": "http://localhost:5000/dummy/server",
-        "expected": 200,
+        "url": "http://localhost:5000/dummy/server/delete",
+        "expected": 400,
         "body": null
     }
 ]

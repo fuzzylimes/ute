@@ -6,7 +6,7 @@ count = 0;
 lastCount = 0;
 
 router
-    .get('/', (req, res) => {
+    .get('/get/', (req, res) => {
         [lastCount, count] = [count, ++count];
         let body = {
             time: Date.now(),
@@ -17,7 +17,7 @@ router
         res.set('Content-Type', 'application/json');
         res.send(JSON.stringify(body));
     })
-    .post('/', (req, res) => {
+    .post('/post/', (req, res) => {
         [lastCount, count] = [count, ++count];
         let body = {
             time: Date.now(),
@@ -28,25 +28,25 @@ router
         res.set('Content-Type', 'application/json');
         res.send(JSON.stringify(body));
     })
-    .put('/', (req, res) => {
+    .put('/put/', (req, res) => {
         [lastCount, count] = [count, ++count];
         let body = {
             time: Date.now(),
             count,
             lastCount
         }
-        res.status(201);
+        res.status(301);
         res.set('Content-Type', 'application/json');
         res.send(JSON.stringify(body));
     })
-    .delete('/', (req, res) => {
+    .delete('/delete/', (req, res) => {
         [lastCount, count] = [count, ++count];
         let body = {
             time: Date.now(),
             count,
             lastCount
         }
-        res.status(200);
+        res.status(400);
         res.set('Content-Type', 'application/json');
         res.send(JSON.stringify(body));
     });

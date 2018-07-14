@@ -36,13 +36,13 @@ let runId;
 let pointer = 0;
 const port = program.port;
 const delay = program.delay;
-let results = {state: 'on'};
+let results = {state: 'on', urls: {}};
 
 
 // Build logging object
 scenario.forEach(element => {
-    if (!results.hasOwnProperty(element.url)) results[element.url] = {};
-    if (!results[element.url].hasOwnProperty(element.method)) results[element.url][element.method.toUpperCase()] = {
+    if (!results.urls.hasOwnProperty(element.url)) results.urls[element.url] = {};
+    if (!results.urls[element.url].hasOwnProperty(element.method)) results.urls[element.url][element.method.toUpperCase()] = {
         responses: {}, tx: 0, rx: 0, times: { min: 10000, max: 0, sum: 0 }, expected: 0
     };
 });
@@ -50,8 +50,10 @@ scenario.forEach(element => {
 // Set the routes
 app.use('/dummy/server', dummy);
 app.get('/controls/stats', (req, res) => {
-    res.set('Content-Type', 'application/json')
+    res.set('Content-Type', 'application/json');
+    // console.log(JSON.stringify(results));
     res.send(JSON.stringify(req.app.get('results')));
+    // res.send(results);
 });
 app.put('/controls/stop', (req, res) => {
     if (!req.get('ute') == 'ute-controller') {
@@ -90,7 +92,7 @@ app.listen(port, (err) => {
 
 function fire(payload) {
     let normalized = payload.method.toUpperCase();
-    ++results[payload.url][normalized].tx;
+    ++results.urls[payload.url][normalized].tx;
     switch (normalized) {
         case 'GET':
         case 'POST':
@@ -108,17 +110,17 @@ function fire(payload) {
                 let path = response.request.uri.href;
                 let method = response.request.method.toUpperCase();
                 let time = response.timings.end;
-                if (time > results[path][method].times.max) results[path][method].times.max = time;
-                if (time < results[path][method].times.min) results[path][method].times.min = time;
-                results[path][method].times.sum += time
-                ++results[path][method].rx;
+                if (time > results.urls[path][method].times.max) results.urls[path][method].times.max = time;
+                if (time < results.urls[path][method].times.min) results.urls[path][method].times.min = time;
+                results.urls[path][method].times.sum += time
+                ++results.urls[path][method].rx;
                 
-                !results[path][method].responses.hasOwnProperty(response.statusCode) ?
-                    results[path][method].responses[response.statusCode] = 1 :
-                    ++results[path][method].responses[response.statusCode];
+                !results.urls[path][method].responses.hasOwnProperty(response.statusCode) ?
+                    results.urls[path][method].responses[response.statusCode] = 1 :
+                    ++results.urls[path][method].responses[response.statusCode];
 
                 if (response.statusCode === payload.expected) {
-                    ++results[path][method].expected;
+                    ++results.urls[path][method].expected;
                 }
                 app.set('results', results);
                 console.log(helper.log(results));
