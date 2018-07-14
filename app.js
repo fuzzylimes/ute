@@ -60,7 +60,7 @@ app.put('/controls/stop', (req, res) => {
         res.status(406);
         res.send("Invalid header");
     } else {
-        res.status(201);
+        res.status(200);
         res.send('Cease fire!');
         console.log(`Ceasing fire!`);
         clearInterval(runId);
