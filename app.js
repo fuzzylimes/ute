@@ -8,7 +8,7 @@ const app = express();
 const readline = require('readline');
 readline.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
-
+const blank = '\n'.repeat(process.stdout.rows)
 // Express Management Stuff...
 // Import Routes
 const dummy = require('./routes/dummy');
@@ -46,9 +46,13 @@ buildLogging();
 function buildLogging(){
     results = { state: 'off', urls: { } };
     scenario.forEach(element => {
-        if (!results.urls.hasOwnProperty(element.url)) results.urls[element.url] = {};
-        if (!results.urls[element.url].hasOwnProperty(element.method)) results.urls[element.url][element.method.toUpperCase()] = {
-            responses: {}, tx: 0, rx: 0, times: { min: 10000, max: 0, sum: 0 }, expected: 0
+        if (!results.urls.hasOwnProperty(element.url)){
+            results.urls[element.url] = {};
+        } 
+        if (!results.urls[element.url].hasOwnProperty(element.method)){
+            results.urls[element.url][element.method.toUpperCase()] = {
+                responses: {}, tx: 0, rx: 0, times: { min: 10000, max: 0, sum: 0 }, expected: 0
+            } 
         };
     });
 }
@@ -90,6 +94,7 @@ app.listen(port, (err) => {
         process.exit(1);
     }
     console.log(`Server started on port: ${port}`);
+    console.log(blank);
 });
 
 // Validate Header
@@ -180,7 +185,7 @@ function fire(payload) {
                     ++results.urls[path][method].expected;
                 }
                 app.set('results', results);
-                console.log(helper.log(results));
+                helper.writeData(results);
             });
             break;
     
