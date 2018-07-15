@@ -5,6 +5,9 @@ const payload = require('./scenarios/dummy');
 var program = require('commander');
 const helper = require('./src/helper');
 const app = express();
+const readline = require('readline');
+readline.emitKeypressEvents(process.stdin);
+process.stdin.setRawMode(true);
 
 // Express Management Stuff...
 // Import Routes
@@ -41,7 +44,7 @@ buildLogging();
 
 // Build logging object
 function buildLogging(){
-    results = { state: 'on', urls: { } };
+    results = { state: 'off', urls: { } };
     scenario.forEach(element => {
         if (!results.urls.hasOwnProperty(element.url)) results.urls[element.url] = {};
         if (!results.urls[element.url].hasOwnProperty(element.method)) results.urls[element.url][element.method.toUpperCase()] = {
@@ -59,38 +62,25 @@ app.get('/controls/stats', (req, res) => {
     // res.send(results);
 });
 app.put('/controls/reset', (req, res) => {
-    if (!req.get('ute') == 'ute-controller') {
-        res.status(406);
-        res.send("Invalid header");
-    } else {
+    if (checkHeader(req,res)) {
         res.status(200);
         res.send('Resetting stats...');
-        console.log(`Resetting stats...`);
-        buildLogging();
-    }
+        clearStats();
+    } 
 });
 app.put('/controls/stop', (req, res) => {
-    if (!req.get('ute') == 'ute-controller') {
-        res.status(406);
-        res.send("Invalid header");
-    } else {
+    if (checkHeader(req, res)) {
         res.status(200);
         res.send('Cease fire!');
-        console.log(`Ceasing fire!`);
-        clearInterval(runId);
-        results.state = 'off';
-    }
+        stopInstance();
+    } 
 });
 app.put('/controls/ute', (req, res) => {
-    if (!req.get('ute') == 'ute-controller') {
-        res.status(406);
-        res.send("Invalid header");
-    } else {
+    if (checkHeader(req, res)) {
         res.status(200);
         res.send('UTE!');
-        console.log(`UTE!`);
-        ute();
-    }
+        startInstance();
+    } 
 });
 
 // Start up server interface
@@ -100,6 +90,59 @@ app.listen(port, (err) => {
         process.exit(1);
     }
     console.log(`Server started on port: ${port}`);
+});
+
+// Validate Header
+function checkHeader(req, res){
+    if (!(req.get('ute') == 'ute-controller')) {
+        res.status(406);
+        res.send("Invalid header");
+        return false;
+    } else return true;
+}
+
+// Clear running stats
+function clearStats() {
+    console.log(`Resetting stats...`);
+    buildLogging();
+}
+
+// Stop Instance
+function stopInstance() {
+    console.log(`Ceasing fire! Press ctrl + f to resume!`);
+    clearInterval(runId);
+    results.state = 'off';
+}
+
+// Start Instance
+function startInstance() {
+    console.log(`Open fire! UTE! UTE! UTE!`);
+    ute();
+}
+
+// Handle stdin key commands
+process.stdin.on('keypress', (str, key) => {
+    if (key.ctrl && key.name === 'c') {
+        process.exit();
+    } else if (key.ctrl && key.name == 'p'){
+        if (results.state == 'off') {
+            console.log('We\'re holding fire! Press ctrl + f to resume!')
+        } else {
+            stopInstance();
+        }
+    } else if (key.ctrl && key.name == 'f') {
+        if (results.state == 'on') {
+            console.log('We\'re already firing!');
+        } else {
+            startInstance()
+        }
+    } else if (key.shift && key.name == 'r') {
+        if (results.state == 'on') {
+            console.log('You must stop firing beore you can reset the stats!')
+        } else {
+            clearStats();
+        }
+    }
 });
 
 // Traffic Generator
