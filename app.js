@@ -36,16 +36,19 @@ let runId;
 let pointer = 0;
 const port = program.port;
 const delay = program.delay;
-let results = {state: 'on', urls: {}};
-
+let results;
+buildLogging();
 
 // Build logging object
-scenario.forEach(element => {
-    if (!results.urls.hasOwnProperty(element.url)) results.urls[element.url] = {};
-    if (!results.urls[element.url].hasOwnProperty(element.method)) results.urls[element.url][element.method.toUpperCase()] = {
-        responses: {}, tx: 0, rx: 0, times: { min: 10000, max: 0, sum: 0 }, expected: 0
-    };
-});
+function buildLogging(){
+    results = { state: 'on', urls: { } };
+    scenario.forEach(element => {
+        if (!results.urls.hasOwnProperty(element.url)) results.urls[element.url] = {};
+        if (!results.urls[element.url].hasOwnProperty(element.method)) results.urls[element.url][element.method.toUpperCase()] = {
+            responses: {}, tx: 0, rx: 0, times: { min: 10000, max: 0, sum: 0 }, expected: 0
+        };
+    });
+}
 
 // Set the routes
 app.use('/dummy/server', dummy);
@@ -54,6 +57,17 @@ app.get('/controls/stats', (req, res) => {
     // console.log(JSON.stringify(results));
     res.send(JSON.stringify(req.app.get('results')));
     // res.send(results);
+});
+app.put('/controls/reset', (req, res) => {
+    if (!req.get('ute') == 'ute-controller') {
+        res.status(406);
+        res.send("Invalid header");
+    } else {
+        res.status(200);
+        res.send('Resetting stats...');
+        console.log(`Resetting stats...`);
+        buildLogging();
+    }
 });
 app.put('/controls/stop', (req, res) => {
     if (!req.get('ute') == 'ute-controller') {
