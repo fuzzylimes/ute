@@ -36,6 +36,7 @@ const scenario = require('./'+program.scenario);
 const rate = program.rate;
 const period = program.period;
 let runId;
+let logId;
 let pointer = 0;
 const port = program.port;
 const delay = program.delay;
@@ -116,6 +117,7 @@ function clearStats() {
 function stopInstance() {
     console.log(`Ceasing fire! Press ctrl + f to resume!`);
     clearInterval(runId);
+    clearInterval(logId);
     results.state = 'off';
 }
 
@@ -185,7 +187,6 @@ function fire(payload) {
                     ++results.urls[path][method].expected;
                 }
                 app.set('results', results);
-                helper.writeData(results);
             });
             break;
     
@@ -203,6 +204,13 @@ function ute() {
         fire(now)
     }, (period / rate)
     );
+    schLog();
+}
+
+function schLog() {
+    logId = setInterval(() => {
+        helper.writeData(results);
+    }, config.refresh);
 }
 
 if (delay){
