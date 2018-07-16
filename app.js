@@ -56,6 +56,7 @@ function buildLogging(){
             } 
         };
     });
+    app.set('results', results);
 }
 
 // Set the routes
