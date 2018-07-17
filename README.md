@@ -10,10 +10,62 @@ With UTE you will be able to:
 * Get real time stats on your performance runs
 * Specify run duration or allow to run indefinitely
 
+## Usage
+Start by cloning or forking this repo.
+
+Install all of the dependent node packages by running `npm install` from within the cloned folder.
+
+To run, you must provide both a scenario file and a rate. By default, `ute` comes built in with debugging server in the running app. You can use the `/scenarios/dummy.json` file to get up and going right away.
+
+Run the following to start sending your first commands:
+
+```
+node app.js --scenario ./scenarios/dummy.json --rate 20 -d
+```
+
+This example will start traffic based on the scenario file at a rate of 20 messages per minute.
+
+## CLI Parameters
+```
+node app.js -h
+
+  Usage: app [options]
+
+  Options:
+
+    -V, --version         output the version number
+    -p --parallel         [optional] Run all calls defined in scenario file in parallel, based on provided execution cycle.
+    This will effectively multiply the rate "-r" by the number of scenarios defined in your scenario file
+    Default is running scenario list sequentially.
+    -s --scenario <file>  [REQUIRED] Scenario traffic file to use (from scenarios folder).
+    -r --rate <rate>      [REQUIRED] Number of calls to be sent per period. Period defaults to 60 seconds. Use "-P" to change the period
+    -P --period <period>  [optional] Period in which "-r" number of messages will be sent. Default (60 second) defined in config file (period) (default: 60000)
+    -l --port <port>      [optional] Listening port for the server (needed for receiving commands/connecting to ute-visor). Default (5000) defined in config file (port). (default: 5000)
+    -d --delay            [optional] Tells ute not to delay fire on startup
+    -h, --help            output usage information
+```
+
+## Config File
+`ute` has a small config file located under the `/src` folder with some default values that you can tweak:
+```json
+{
+    "timeout": 1000,
+    "port": 5000,
+    "period": 60000,
+    "refresh": 2000
+}
+```
+
 ## Controls
-By default, ute will not start firing off until you tell it to (overwritten with the `-d` flag). To start, you'll need to send a REST call to start up the traffic.
+`ute` provides two different way to control the application: 1) via CLI and 2) via built in REST interface.
+
+By default, ute will not start firing off until you tell it to (overwritten with the `-d` flag). To start, you'll need to send a command to start up the traffic.
 
 ### Starting Traffic
+#### CLI
+To start or resume traffic, you can press `ctrl + f` on the cli.
+
+#### REST API
 You'll need to send a `PUT` request to the `/controls/ute` endpoint.
 
 For basic security reasons, you need to include the following header and value:
@@ -23,8 +75,32 @@ For basic security reasons, you need to include the following header and value:
 }
 ```
 
-### Stopping Traffic
+### Pausing Traffic
+#### CLI
+To pause, you can press `ctrl + p` to pause the currently running traffic.
+
+This will not kill the instance, only stop the traffic from being sent.
+
+To resume, you can press `ctrl + f`
+
+#### REST API
 You'll need to send a `PUT` request to the `/controls/stop` endpoint.
+
+For basic security reasons, you need to include the following header and value:
+```json
+{
+    "ute": "ute-controller"
+}
+```
+
+### Resetting Stats
+#### CLI
+To reset the stats, you must first pause the traffic. This ensures that you really want to be resetting the traffic.
+
+With traffic paused, press `shift + r` to issue the reset command.
+
+#### REST API
+You'll need to send a `PUT` request to the `/controls/reset` endpoint.
 
 For basic security reasons, you need to include the following header and value:
 ```json
@@ -90,6 +166,15 @@ To retrieve the current run stats, send a `GET` request to `/stats`. This will r
         }
     }
 }
+```
+
+## CLI Stats
+By default, stats are displayed out to the user on the CLI, grouped by the endpoints with their specific methods. Here's an example of what that looks like:
+```
+(GET) http://localhost:5000/dummy/server/get 2/2 (100.000%) - Responses: {"200":2} - MIN: 5.7364, MAX: 27.8719, AVG: 16.8041
+(POST) http://localhost:5000/dummy/server/post 2/2 (100.000%) - Responses: {"201":2} - MIN: 11.6150, MAX: 12.1021, AVG: 11.8585
+(PUT) http://localhost:5000/dummy/server/put 2/2 (100.000%) - Responses: {"301":2} - MIN: 5.6019, MAX: 5.9458, AVG: 5.7739
+(DELETE) http://localhost:5000/dummy/server/delete 2/2 (100.000%) - Responses: {"400":2} - MIN: 3.4981, MAX: 7.6706, AVG: 5.5843
 ```
 
 ## Disclaimer

@@ -1,6 +1,6 @@
 {
   "name": "ute",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Light weight traffic simulator",
   "main": "app.js",
   "scripts": {
