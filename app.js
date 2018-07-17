@@ -1,7 +1,6 @@
 const express = require('express');
 const request = require('request');
 const config = require('./src/config');
-const payload = require('./scenarios/dummy');
 var program = require('commander');
 const helper = require('./src/helper');
 const app = express();
@@ -96,7 +95,7 @@ app.listen(port, (err) => {
         process.exit(1);
     }
     console.log(`Server started on port: ${port}`);
-    console.log(blank);
+    checkDelay();
 });
 
 // Validate Header
@@ -146,7 +145,7 @@ process.stdin.on('keypress', (str, key) => {
         }
     } else if (key.shift && key.name == 'r') {
         if (results.state == 'on') {
-            console.log('You must stop firing beore you can reset the stats!')
+            console.log('You must stop firing before you can reset the stats!')
         } else {
             clearStats();
         }
@@ -197,6 +196,7 @@ function fire(payload) {
     }
 }
 
+// Start Traffic
 function ute() {
     results.state = 'on';
     runId = setInterval(() => {
@@ -208,13 +208,18 @@ function ute() {
     schLog();
 }
 
+// Logging schedular
 function schLog() {
     logId = setInterval(() => {
         helper.writeData(results);
     }, config.refresh);
 }
 
-if (delay){
-    console.log('UTE!');
-    ute();
+function checkDelay() {
+    console.log(blank);
+    if (delay){
+        ute();
+    } else {
+        console.log('Traffic paused. Press ctrl + f to start firing!')
+    }
 }
