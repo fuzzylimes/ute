@@ -1,7 +1,7 @@
 const express = require('express');
 const request = require('request');
 const config = require('./src/config');
-var program = require('commander');
+const program = require('commander');
 const helper = require('./src/helper');
 const app = express();
 const readline = require('readline');
@@ -30,15 +30,11 @@ if (!program.scenario || !program.rate){
 }
 
 // Set Variables
-const parallel = program.parallel;
 const scenario = require('./'+program.scenario);
-const rate = program.rate;
-const period = program.period;
+const { rate, period, port, delay, parallel} = program;
+let pointer = 0;
 let runId;
 let logId;
-let pointer = 0;
-const port = program.port;
-const delay = program.delay;
 let results;
 buildLogging();
 
@@ -62,9 +58,7 @@ function buildLogging(){
 app.use('/dummy/server', dummy);
 app.get('/controls/stats', (req, res) => {
     res.set('Content-Type', 'application/json');
-    // console.log(JSON.stringify(results));
     res.send(JSON.stringify(req.app.get('results')));
-    // res.send(results);
 });
 app.put('/controls/reset', (req, res) => {
     if (checkHeader(req,res)) {
@@ -131,19 +125,19 @@ function startInstance() {
 process.stdin.on('keypress', (str, key) => {
     if (key.ctrl && key.name === 'c') {
         process.exit();
-    } else if (key.ctrl && key.name == 'p'){
+    } else if (key.ctrl && key.name === 'p'){
         if (results.state == 'off') {
             console.log('We\'re holding fire! Press ctrl + f to resume!')
         } else {
             stopInstance();
         }
-    } else if (key.ctrl && key.name == 'f') {
+    } else if (key.ctrl && key.name === 'f') {
         if (results.state == 'on') {
             console.log('We\'re already firing!');
         } else {
             startInstance()
         }
-    } else if (key.shift && key.name == 'r') {
+    } else if (key.shift && key.name === 'r') {
         if (results.state == 'on') {
             console.log('You must stop firing before you can reset the stats!')
         } else {
@@ -156,7 +150,7 @@ process.stdin.on('keypress', (str, key) => {
 
 function fire(payload) {
     let normalized = payload.method.toUpperCase();
-    ++results.urls[payload.url][normalized].tx;
+    results.urls[payload.url][normalized].tx += 1;
     switch (normalized) {
         case 'GET':
         case 'POST':
@@ -168,23 +162,29 @@ function fire(payload) {
                 body: payload.body,
                 time: true
             }, (error, response, body) => {
+                let responseCode;
                 if (error){
-                    response.statusCode = "ERROR";
+                    responseCode = "ERROR";
+                } else {
+                    responseCode = response.statusCode;
                 }
                 let path = response.request.uri.href;
                 let method = response.request.method.toUpperCase();
                 let time = response.timings.end;
-                if (time > results.urls[path][method].times.max) results.urls[path][method].times.max = time;
-                if (time < results.urls[path][method].times.min) results.urls[path][method].times.min = time;
-                results.urls[path][method].times.sum += time
-                ++results.urls[path][method].rx;
+                let method_record = results.urls[path][method];
+                if (time > method_record.times.max) method_record.times.max = time;
+                if (time < method_record.times.min) method_record.times.min = time;
+                method_record.times.sum += time
+                method_record.rx += 1;
                 
-                !results.urls[path][method].responses.hasOwnProperty(response.statusCode) ?
-                    results.urls[path][method].responses[response.statusCode] = 1 :
-                    ++results.urls[path][method].responses[response.statusCode];
+                if (!method_record.responses.hasOwnProperty(responseCode)) {
+                    method_record.responses[responseCode] = 1;
+                } else {
+                    method_record.responses[responseCode] += 1;
+                }
 
-                if (response.statusCode === payload.expected) {
-                    ++results.urls[path][method].expected;
+                if (responseCode === payload.expected) {
+                    method_record.expected += 1;
                 }
                 app.set('results', results);
             });
@@ -201,7 +201,7 @@ function ute() {
     results.state = 'on';
     runId = setInterval(() => {
         let now = scenario[pointer];
-        ++pointer < scenario.length ? pointer : pointer = 0;
+        (pointer += 1) < scenario.length ? pointer : pointer = 0;
         fire(now)
     }, (period / rate)
     );
