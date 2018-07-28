@@ -1,8 +1,8 @@
 const util = require('util');
 const readline = require('readline')
 
-function formatData(data){
-    let string = "";
+function formatData(data, rate, period){
+    let string = `Rate: ${rate}/${period/1000}sec\n`;
     // string += `Simulator Status: ${data.state}\n`;
     let urls = Object.keys(data.urls);
     urls.forEach(u => {
@@ -19,9 +19,9 @@ module.exports = {
     log: function(log) {
         return util.inspect(log, false, null)
     },
-    writeData: function (data) {
+    writeData: function (data, rate, period) {
         readline.cursorTo(process.stdout, 0, 0)
         readline.clearScreenDown(process.stdout)
-        console.log(formatData(data));
+        console.log(formatData(data, rate, period));
     }
 }

@@ -211,7 +211,7 @@ function ute() {
 // Logging schedular
 function schLog() {
     logId = setInterval(() => {
-        helper.writeData(results);
+        helper.writeData(results, rate, period);
     }, config.refresh);
 }
 
