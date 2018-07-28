@@ -40,7 +40,7 @@ buildLogging();
 
 // Build logging object
 function buildLogging(){
-    results = { state: 'off', urls: { } };
+    results = { state: 'off', rate: `${rate}/${period/1000}sec`, urls: { } };
     scenario.forEach(element => {
         if (!results.urls.hasOwnProperty(element.url)){
             results.urls[element.url] = {};
