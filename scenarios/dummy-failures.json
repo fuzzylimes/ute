@@ -1,0 +1,26 @@
+[
+    {
+        "method": "get",
+        "url": "http://localhost:5000/dummy/server/get",
+        "expected": 201,
+        "body": null
+    },
+    {
+        "method": "post",
+        "url": "http://localhost:5000/dummy/server/post",
+        "expected": 201,
+        "body": "{\"method\":\"post\"}"
+    },
+    {
+        "method": "put",
+        "url": "http://localhost:5000/dummy/server/put",
+        "expected": 302,
+        "body": "{\"method\":\"put\"}"
+    },
+    {
+        "method": "delete",
+        "url": "http://localhost:5000/dummy/server/delete",
+        "expected": 401,
+        "body": null
+    }
+]
