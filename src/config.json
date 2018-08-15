@@ -1,6 +1,6 @@
 {
     "timeout": 1000,
     "port": 5000,
-    "period": 60000,
+    "period": 60,
     "refresh": 2000
 }

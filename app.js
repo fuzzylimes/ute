@@ -18,7 +18,7 @@ program
     .option('-p --parallel', '[optional] Run all calls defined in scenario file in parallel, based on provided execution cycle.\nThis will effectively multiply the rate "-r" by the number of scenarios defined in your scenario file\nDefault is running scenario list sequentially.', false)
     .option('-s --scenario <file>', '[REQUIRED] Scenario traffic file to use (from scenarios folder).')
     .option('-r --rate <rate>', '[REQUIRED] Number of calls to be sent per period. Period defaults to 60 seconds. Use "-P" to change the period')
-    .option('-P --period <period>', '[optional] Period in which "-r" number of messages will be sent. Default (60 second) defined in config file (period)', config.period)
+    .option('-P --period <period>', '[optional] Period in seconds which "-r" number of messages will be sent. Default (60 second) defined in config file (period)', config.period)
     .option('-l --port <port>', '[optional] Listening port for the server (needed for receiving commands/connecting to ute-visor). Default (5000) defined in config file (port).', config.port)
     .option('-d --delay', '[optional] Tells ute not to delay fire on startup', false)
 program.parse(process.argv);
@@ -31,7 +31,8 @@ if (!program.scenario || !program.rate){
 
 // Set Variables
 const scenario = require('./'+program.scenario);
-const { rate, period, port, delay, parallel} = program;
+const { rate, port, delay, parallel} = program;
+const period = program.period * 1000;
 let pointer = 0;
 let runId;
 let logId;
